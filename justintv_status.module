@@ -1,0 +1,182 @@
+<?php
+
+function justintv_status_menu() {
+  $items['examples/justintv_status'] = array(
+    'page callback' => 'justintv_status_page',
+    'access callback' => TRUE,
+    'title' => 'Block Example',
+  );
+  return $items;
+}
+
+/**
+ * Simple page function to explain what the block example is about.
+ */
+function justintv_status_page() {
+  $page = array(
+    '#type' => 'markup',
+    '#markup' => t('The Block Example provides two sample blocks which demonstrate the various block APIs. To experiment with the blocks, enable and configure them on <a href="@url">the block admin page</a>.', array('@url' => url('admin/structure/block'))),
+  );
+  return $page;
+}
+/**
+ * Implements hook_block_info().
+ *
+ * This hook declares what blocks are provided by the module.
+ */
+function justintv_status_block_info() {
+  
+  $blocks['example_configurable_text'] = array(
+    'info' => t('Justin.tv Status'),
+    'cache' => DRUPAL_CACHE_PER_ROLE, // default
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ *
+ * This hook declares configuration options for blocks provided by this module.
+ */
+function justintv_status_block_configure($delta = '') {
+  // The $delta parameter tells us which block is being configured.
+  // In this example, we'll allow the administrator to customize
+  // the text of the 'configurable text string' block defined in this module.
+
+  $form = array();
+  if ($delta == 'example_configurable_text') {
+    // All we need to provide is the specific configuration options for our
+    // block. Drupal will take care of the standard block configuration options
+    // (block title, page visibility, etc.) and the save button.
+    $form['justintv_status_string'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Block contents'),
+      '#default_value' => variable_get('justintv_status_string',  t('TEXT OUTPUT HERE OMG')),
+    );
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ *
+ * This hook declares how the configured options for a block
+ * provided by this module are saved.
+ */
+function justintv_status_block_save($delta = '', $edit = array()) {
+  // We need to save settings from the configuration form.
+  // We need to check $delta to make sure we are saving the right block.
+  if ($delta == 'example_configurable_text') {
+    // Have Drupal save the string to the database.
+    variable_set('justintv_status_string', $edit['justintv_status_string']);
+  }
+  return;
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * This hook generates the contents of the blocks themselves.
+ */
+function justintv_status_block_view($delta = '') {
+  //The $delta parameter tells us which block is being requested.
+  switch ($delta) {
+    case 'example_configurable_text':
+      $block['subject'] = t('Justin.tv Status');
+      $block['content'] = justintv_statuses();
+      break;
+  }
+  return $block;
+}
+
+/**
+ * A module-defined block content function.
+ */
+function justintv_statuses() {
+  $html='';
+  $url = array();
+  $url['femFxNavi'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=navilisten", 'login' => 'navilisten');
+  $url['femFxKaren'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=karen_mcd", 'login' => 'karen_mcd');
+  $url['Drewbie'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=rootgaming", 'login' => 'rootgaming');
+  $url['Destiny'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=steven_bonnell_ii", 'login' => 'steven_bonnell_ii');
+  $url['Grubby'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=followgrubby", 'login' => 'followgrubby');
+  $url['SLush'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=rootgaming2", 'login' => 'rootgaming2');
+  $url['Spanishiwa'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=spanishiwa", 'login' => 'spanishiwa');
+  $url['Idra'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=eg_idra", 'login' => 'eg_idra');
+  $url['Tyler'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=liquidtyler", 'login' => 'liquidtyler');
+  $url['Catz'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=rootcatz", 'login' => 'rootcatz');
+
+  
+  $file = 'streams.json';
+  if ((strtotime("now") - filemtime($file)) > 300) {
+      $entries = array();
+      
+      foreach ($url as $num => $u) {
+        $data = json_decode(file_get_contents($u['url']));
+        //print_r($data);
+        $entry = array();
+        $entry['online'] = 0;
+        $entry['stream'] = $num;
+        $entry['login'] = $u['login'];
+        $entry['title'] = $num;
+        //print count($data[0]->name);
+        if (count($data) > 0) {
+
+          $entry['online'] = 1;
+        }
+        $entries[] = $entry;
+      }
+      
+      // sorting this.
+      foreach ($entries as $key => $row) {
+        $orderByDate[$key] = $row['online'];
+      }
+      array_multisort($orderByDate, SORT_DESC, $entries);
+
+      $output =  json_encode($entries);
+      file_put_contents($file, json_encode($entries));
+  } else {
+      $output = file_get_contents($file);
+  }
+  //PARSE JSON
+    //stream/grubby
+    $json_o=json_decode($output);
+    $on='<strong><div style="color:#267F00">ONLINE: </strong></div>';
+    $off= '<strong><div style="color:#FF5D00">OFFLINE: </strong></div><div style="color:#B0B0B0">';
+    foreach($json_o as $p)
+    {
+      if ($p->online == 1)
+        $on .='<a href="/stream/'. $p->stream. '"> '. $p->stream . '</a> - ' ;
+      else
+        $off .='<a href="/stream/'. $p->stream. '"> '. $p->stream . '</a> - ' ;
+    }
+    $html = '<div style="color:#DBDBDB">...checks every 5 mins<br/></div>'. $on;
+    $html.='<br/>' .  $off . '</div>';
+
+  return $html;
+}
+
+
+function justintv_status_block_list_alter(&$blocks) {
+  foreach ($blocks as $bid => $block) {
+    if (($block->module == 'search') && ($block->delta == 'form')) {
+      // Remove the block from the list and append to the end.
+      unset($blocks[$bid]);
+      $blocks[$bid] = $block;
+      break;
+    }
+  }
+}
+
+function justintv_status_block_view_alter(&$data, $block) {
+  // Verify the we have raw text content
+  if (!isset($data['content']) || !is_string($data['content'])) {
+    return;
+  }
+
+  // If the content contains the string: 'magic string', uppercase the title.
+  if (strstr($data['content'], 'magic string')) {
+    $data['subject'] = isset($data['subject']) ? drupal_strtoupper($data['subject']) : '';
+  }
+}
