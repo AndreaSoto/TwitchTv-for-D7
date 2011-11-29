@@ -1,0 +1,6 @@
+
+name = justintv_status
+description = Check Justin.tv streams if they are live. Created by Andrea Soto. yuibox.com
+package = Other
+core = 7.x
+
