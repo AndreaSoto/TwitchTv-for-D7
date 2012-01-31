@@ -83,77 +83,141 @@ function justintv_status_block_view($delta = '') {
   //The $delta parameter tells us which block is being requested.
   switch ($delta) {
     case 'example_configurable_text':
-      $block['subject'] = t('Justin.tv Status');
+      /*$block['subject'] = t('TwitchTV Status');*/
       $block['content'] = justintv_statuses();
       break;
   }
   return $block;
 }
 
+$upperBound = $lowerBound = 0;
 /**
- * A module-defined block content function.
+ * A module-defined block content function. Checks every 5 minutes whether a stream is online or not.
+ * If not, checks the channel's information that the stream belongs to and updates
  */
 function justintv_statuses() {
   $html='';
   $url = array();
-  $url['femFxNavi'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=navilisten", 'login' => 'navilisten');
-  $url['femFxKaren'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=karen_mcd", 'login' => 'karen_mcd');
-  $url['Drewbie'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=rootgaming", 'login' => 'rootgaming');
-  $url['Destiny'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=steven_bonnell_ii", 'login' => 'steven_bonnell_ii');
-  $url['Grubby'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=followgrubby", 'login' => 'followgrubby');
-  $url['SLush'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=rootgaming2", 'login' => 'rootgaming2');
-  $url['Spanishiwa'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=spanishiwa", 'login' => 'spanishiwa');
-  $url['Idra'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=eg_idra", 'login' => 'eg_idra');
-  $url['Tyler'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=liquidtyler", 'login' => 'liquidtyler');
-  $url['Catz'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=rootcatz", 'login' => 'rootcatz');
-
+  /* Test later to reduce code and see if it allows for more streams to be listed.
+    $streamList = "femfxrogue,ensisichi,samanthapants,femfx,justBunneh,livinpink,trumpetmcool,femfxnudge,"."manarift,chickstv,femfxanita,guillycuddy,rockskin,gtcheticus,insanitylol,s4kur4chan,digitaltyrant,"."itshappytime,nadeslos,pinklotus,karmask89,sunset_sc2"; 
+   */
+  /* femFx Streams */
+  $url['Rogue'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=femfxrogue", 'login' => 'femfxrogue');
+  $url['Ichi'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=ensisichi", 'login' => 'ensisichi');
+  $url['Sam'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=samanthapants", 'login' => 'samanthapants');
+  $url['Fem-Fx'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=femfx", 'login' => 'femfx');
+  $url['Bunneh'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=justBunneh", 'login' => 'justBunneh');
+  $url['Livinpink'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=livinpink", 'login' => 'livinpink');
+  $url['Trumpetmcool'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=trumpetmcool", 'login' => 'trumpetmcool');
+  $url['Nudge'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=femfxnudge", 'login' => 'femfxnudge');
+  $url['Manarift'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=manarift", 'login' => 'manarift');
+  $url['Chicks'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=chickstv", 'login' => 'chickstv');
+  $url['Anita'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=femfxanita", 'login' => 'femfxanita');
+  $url['Guilly'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=guillycuddy", 'login' => 'guillycuddy');
+  $url['Rick'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=rockskin", 'login' => 'rockskin');
+  $url['Chet'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=gtcheticus", 'login' => 'gtcheticus');
+  $url['Ladyinsanity'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=insanitylol", 'login' => 'insanitylol');
+  $url['Sakura'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=s4kur4chan", 'login' => 's4kur4chan');
+  $url['Jerome'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=digitaltyrant", 'login' => 'digitaltyrant');
+  $url['Smashbox'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=itshappytime", 'login' => 'itshappytime');
+  $url['NGeX'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=nadeslos", 'login' => 'nadeslos');
+  $url['Pinklotus'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=pinklotus", 'login' => 'pinklotus');
+  $url['Karma'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=karmask89", 'login' => 'karmask89');
+  $url['Sunset'] = array('url' => "http://api.justin.tv/api/stream/list.json?channel=sunset_sc2", 'login' => 'sunset_sc2');
   
   $file = 'streams.json';
-  if ((strtotime("now") - filemtime($file)) > 300) {
-      $entries = array();
-      
-      foreach ($url as $num => $u) {
-        $data = json_decode(file_get_contents($u['url']));
-        //print_r($data);
-        $entry = array();
-        $entry['online'] = 0;
-        $entry['stream'] = $num;
-        $entry['login'] = $u['login'];
-        $entry['title'] = $num;
-        //print count($data[0]->name);
-        if (count($data) > 0) {
-
-          $entry['online'] = 1;
+  $viewsFile = 'views.txt'; //<-- Needs to be precomputed in order to include everyone.
+  if ((strtotime("now") - filemtime($file)) > 300) { /* if every 5 minutes from writing to file */
+    $entries = array();
+    $topViewers = array();
+    $everyone = array();
+    $result = array();
+    $viewsData = file_get_contents($viewsFile);
+    $lines = explode("\n", $viewsData);
+    foreach ($url as $num => $u) { /* foreach streamer in the list $url */
+      $data = json_decode(file_get_contents($u['url']));
+      $entry = array();
+      $entry['online'] = 0;
+      $entry['stream'] = $num;
+      if (count($data) > 0) { /* if streamer is online */
+        $entry['online'] = 1;
+        $entry['views'] = $data[0]->channel_view_count;
+        $isFound = false;
+        foreach ($lines as $line) { 
+          $arr = explode(' ', trim($line));
+          if ($arr[0] == $num) {
+            $arr[1] = $data[0]->channel_view_count;
+            $line = join(" ", $arr);
+            $isFound = true;
+            $entries[] = $entry;
+            $result[] = $line . PHP_EOL;
+          }
         }
-        $entries[] = $entry;
+        if (!$isFound) { /* not found in views.txt */
+          $entries[] = $entry;
+          $result[] = $num . ' ' . $data[0]->channel_view_count . PHP_EOL;
+        }
+      } /* end if streamer is online */
+      else { /* else streamer is offline */
+        $offline_url = "http://api.justin.tv/api/channel/show/".$u['login'].".json";
+        $data2 = json_decode(file_get_contents($offline_url));
+        $entry['views'] = $data2->views_count;
+        $isFound = false;
+        foreach ($lines as $line) {
+          $arr = explode(' ', trim($line));
+          if ($arr[0] == $num) {
+            $entry['views'] = $arr[1];
+            $isFound = true;
+            $entries[] = $entry;
+            $result[] = $line . PHP_EOL;
+          }
+        }
+        if (!$isFound) { /* not found in views.txt */
+          $entries[] = $entry;
+          $result[] = $num . ' ' . $data2->views_count . PHP_EOL;
+        }
+      } /* end else streamer is offline */
+    } /* end foreach streamer in the list $url */
+    
+    // sorting entries by view count
+    foreach ($entries as $key => $row) {
+      $orderByViews[$key] = $row['views'];
+    }
+    array_multisort($orderByViews, SORT_DESC, $entries);
+    
+    // keeping only the top 15
+    $count = 0;
+    foreach ($entries as $entry) {
+      if ($count < 15) {
+        $topViewers[] = $entry;
+      } 
+      else {
+        $everyone[] = $entry;
       }
-      
-      // sorting this.
-      foreach ($entries as $key => $row) {
-        $orderByDate[$key] = $row['online'];
-      }
-      array_multisort($orderByDate, SORT_DESC, $entries);
-
-      $output =  json_encode($entries);
-      file_put_contents($file, json_encode($entries));
-  } else {
-      $output = file_get_contents($file);
+      $count++;
+    }
+    
+    // recording any new information about the streamers
+    $output = json_encode($topViewers);
+    file_put_contents($file, $output);
+    file_put_contents($viewsFile, $result);
+  } 
+  else { // if the code runs any time before 5 minutes, keep the old info
+    $output = file_get_contents($file);
   }
   //PARSE JSON
-    //stream/grubby
-    $json_o=json_decode($output);
-    $on='<strong><div style="color:#267F00">ONLINE: </strong></div>';
-    $off= '<strong><div style="color:#FF5D00">OFFLINE: </strong></div><div style="color:#B0B0B0">';
-    foreach($json_o as $p)
-    {
-      if ($p->online == 1)
-        $on .='<a href="/stream/'. $p->stream. '"> '. $p->stream . '</a> - ' ;
-      else
-        $off .='<a href="/stream/'. $p->stream. '"> '. $p->stream . '</a> - ' ;
-    }
-    $html = '<div style="color:#DBDBDB">...checks every 5 mins<br/></div>'. $on;
-    $html.='<br/>' .  $off . '</div>';
-
+  $json_o=json_decode($output);
+  $on='<strong><div style="color:#267F00">ONLINE: </strong></div><div style="color:#B0B0B0; margin-left:12px;">';
+  $off= '<strong><div style="color:#FF5D00">OFFLINE: </strong></div><div style="color:#B0B0B0; margin-left:12px;">';
+  foreach($json_o as $p)
+  {
+    if ($p->online == 1)
+      $on .='<a href="/stream/'. $p->stream. '"> '. $p->stream . '</a> <br> ' ;
+    else
+      $off .='<a href="/stream/'. $p->stream. '"> '. $p->stream . '</a> - ' ;
+  }
+  $html = '<h3 style="margin-bottom:0px;" align="center">TEAM STREAMS</h6><div align="center">...checks every 5 mins<br/></div>'. $on . '</div>';
+  $html.='<br/>' .  $off . '</div>';
   return $html;
 }
 
